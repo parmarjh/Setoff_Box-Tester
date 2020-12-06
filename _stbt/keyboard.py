@@ -174,6 +174,7 @@ class Keyboard(object):
     * Tries to recover from missed or double keypresses. To disable this
       behaviour specify ``retries=0`` when calling `enter_text` or
       `navigate_to`.
+    * Increased default ``navigate_timeout`` from 20 to 60 seconds.
 
     Changed in v32:
 
@@ -193,7 +194,7 @@ class Keyboard(object):
     .. _Directed Graph: https://en.wikipedia.org/wiki/Directed_graph
     '''
 
-    def __init__(self, graph=None, mask=None, navigate_timeout=20):
+    def __init__(self, graph=None, mask=None, navigate_timeout=60):
         if graph is not None:
             raise ValueError(
                 "The `graph` parameter of `stbt.Keyboard` constructor is "
