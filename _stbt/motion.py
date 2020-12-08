@@ -17,7 +17,7 @@ from .logging import debug, draw_on
 from .types import Region, UITestFailure
 
 
-def detect_motion(timeout_secs=10, noise_threshold=None, mask=None,
+def detect_motion(timeout_secs=10, threshold=None, mask=None,
                   region=Region.ALL, frames=None):
     """Generator that yields a sequence of one `MotionResult` for each frame
     processed from the device-under-test's video stream.
@@ -39,15 +39,13 @@ def detect_motion(timeout_secs=10, noise_threshold=None, mask=None,
         the iterator will yield frames forever. Note that you can stop
         iterating (for example with ``break``) at any time.
 
-    :param float noise_threshold:
-        The amount of noise to ignore. This is only useful with noisy analogue
-        video sources. Valid values range from 0 (all differences are
-        considered noise; a value of 0 will never report motion) to 1.0 (any
-        difference is considered motion).
+    :param int threshold:
+        The difference (in pixel intensity value) to ignore. Valid
+        values range from 0 (any difference is counted as motion) to 255 (any
+        difference is ignored).
 
-        This defaults to 0.84. You can override the global default value by
-        setting ``noise_threshold`` in the ``[motion]`` section of
-        :ref:`.stbt.conf`.
+        This defaults to 25. You can override the global default value by
+        setting ``threshold`` in the ``[motion]`` section of :ref:`.stbt.conf`.
 
     :type mask: str or `numpy.ndarray`
     :param mask:
@@ -86,7 +84,7 @@ def detect_motion(timeout_secs=10, noise_threshold=None, mask=None,
     except StopIteration:
         return
 
-    differ = MotionDiff(frame, region, mask, noise_threshold=noise_threshold)
+    differ = detect_motion.differ(frame, region, mask, threshold=threshold)
     for frame in frames:
         result = differ.diff(frame)
         draw_on(frame, result, label="detect_motion()")
@@ -95,9 +93,12 @@ def detect_motion(timeout_secs=10, noise_threshold=None, mask=None,
         yield result
 
 
+detect_motion.differ = MotionDiff
+
+
 def wait_for_motion(
         timeout_secs=10, consecutive_frames=None,
-        noise_threshold=None, mask=None, region=Region.ALL, frames=None):
+        threshold=None, mask=None, region=Region.ALL, frames=None):
     """Search for motion in the device-under-test's video stream.
 
     "Motion" is difference in pixel values between two frames.
@@ -120,12 +121,9 @@ def wait_for_motion(
         setting ``consecutive_frames`` in the ``[motion]`` section of
         :ref:`.stbt.conf`.
 
-    :param float noise_threshold: See `detect_motion`.
-
+    :param float threshold: See `detect_motion`.
     :param mask: See `detect_motion`.
-
     :param region: See `detect_motion`.
-
     :param frames: See `detect_motion`.
 
     :returns: `MotionResult` when motion is detected. The MotionResult's
@@ -163,8 +161,7 @@ def wait_for_motion(
     matches = deque(maxlen=considered_frames)
     motion_count = 0
     last_frame = None
-    for res in detect_motion(
-            timeout_secs, noise_threshold, mask, region, frames):
+    for res in detect_motion(timeout_secs, threshold, mask, region, frames):
         motion_count += bool(res)
         if len(matches) == matches.maxlen:
             motion_count -= bool(matches.popleft())

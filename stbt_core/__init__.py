@@ -24,6 +24,7 @@ from _stbt.config import (
     get_config)
 from _stbt.diff import (
     FrameDiffer,
+    GrayscaleDiff,
     MotionDiff,
     MotionResult)
 from _stbt.frameobject import (
@@ -97,6 +98,7 @@ __all__ = [to_native_str(x) for x in [
     "frames",
     "get_config",
     "get_frame",
+    "GrayscaleDiff",
     "Grid",
     "Image",
     "is_screen_black",
