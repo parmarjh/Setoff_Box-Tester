@@ -346,6 +346,19 @@ class _TransitionResult(object):
             return None
         return self.end_time - self.animation_start_time
 
+    @property
+    def started(self):
+        return self != TransitionStatus.START_TIMEOUT
+
+    @property
+    def completed(self):
+        return self == TransitionStatus.COMPLETE
+
+    @property
+    def stable(self):
+        return self.status in (TransitionStatus.START_TIMEOUT,
+                               TransitionStatus.COMPLETE)
+
 
 class TransitionStatus(enum.Enum):
 
